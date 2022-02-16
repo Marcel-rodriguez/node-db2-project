@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start":"node index.js",
+    "start": "node index.js",
     "server": "nodemon index.js",
     "test": "cross-env NODE_ENV=testing jest --verbose --runInBand",
     "seed": "knex seed:run",
@@ -24,6 +24,7 @@
     "knex": "^0.95.14",
     "morgan": "^1.10.0",
     "sqlite3": "^5.0.2",
+    "vin-validator": "^1.0.0",
     "yup": "^0.32.11"
   },
   "repository": {

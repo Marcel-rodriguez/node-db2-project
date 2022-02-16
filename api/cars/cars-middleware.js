@@ -1,5 +1,6 @@
 const carsModel = require('./cars-model')
 const yup = require('yup')
+const vinValidator = require('vin-validator')
 
 const checkCarId = (req, res, next) => {
   carsModel.getById(req.params.id)
@@ -17,7 +18,9 @@ const carPayloadSchema = yup.object({
   vin: yup.string().trim().min(17).max(17).required(),
   make: yup.string().trim().required(),
   model: yup.string().trim().required(),
-  mileage: yup.number().required()
+  mileage: yup.number().required(),
+  title: yup.string().trim(),
+  transmission: yup.string().trim()
 });
 
 const checkCarPayload = async (req, res, next) => {
@@ -30,35 +33,29 @@ const checkCarPayload = async (req, res, next) => {
   }
 }
 
-const validVinSchema = yup.object({
-  vin: yup.string().trim().min(17).required()
-})
 
-const checkVinNumberValid = async (req, res, next) => {
-  try{
-    const validVin = await validVinSchema.validate(req.body.vin);
-    req.body.vin = validVin
-    next()
-  } catch(err){
-    next({status: 400, message: err.message})
-  }
-}
-
-const checkVinNumberUnique = async (req, res, next) => {
-  try{
-    const allCars = await carsModel.getAll()
-    allCars.find(car => {
-    if(car.vin.includes(req.body.vin)){
-      return next({status:400, message: `Vin must be unique`})
+const checkVinNumberValid = (req, res, next) => {
+    const isValidVin = vinValidator.validate(req.body.vin)
+    if(!isValidVin){
+      res.status(400).json({message: 'Not a valid vin number'})
     } else {
       next()
     }
-  })
-  } catch(err){
-    next({status:400, message: err.message})
-  }
 }
 
+const checkVinNumberUnique = (req, res, next) => {
+  carsModel.getByVin(req.body.vin)
+  .then(vin => {
+    if(!vin){
+      next()
+    } else {
+      res.status(400).json({message: 'vin must be unique'})
+    }
+  }).catch(err => {
+    console.error(err)
+    next(err)
+  })
+}
 
 module.exports = {
   checkCarId,
